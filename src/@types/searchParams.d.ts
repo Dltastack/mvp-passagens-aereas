@@ -5,5 +5,5 @@ export interface SearchParamsProps {
   returnDate: string
   passengers: string
   fareOption: string; // novo campo
-
+  source: stirng;
 }

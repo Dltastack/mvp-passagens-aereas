@@ -21,6 +21,7 @@ export default function FlightSearch() {
     returnDate: "",
     passengers: "1",
     fareOption: "",
+    source: "",
   })
   const [flights, setFlights] = useState<AvailabilityData[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -32,7 +33,7 @@ export default function FlightSearch() {
     setHasSearched(true)
 
     try {
-      const { data } = await searchFlights()
+      const { data } = await searchFlights(searchParams)
       setFlights(data)
     } catch (error: any) {
       console.error("Erro ao buscar voos:", error.response ?? error.message)
