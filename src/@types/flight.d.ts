@@ -1,115 +1,103 @@
-export type Currency = 'BRL' | 'USD' | 'EUR';
-
-export type FareType = 'PUBLISHED' | 'NEGOTIATED' | 'CORPORATE';
-
-export type TravelerType = 'ADULT' | 'CHILD' | 'SENIOR' | 'YOUNG' | 'DISABLED' | 'DISABLED_CHILD' | 'HELPER' | 'SEATED_INFANT' | 'STUDENT';
-
-export interface Location {
-  iataCode: string;
-  at: string;
-  terminal?: string;
-  airport: string
-  city: string
-  date: Date
-  time: string
+interface Route {
+  ID: string;
+  OriginAirport: string;
+  OriginRegion: string;
+  DestinationAirport: string;
+  DestinationRegion: string;
+  NumDaysOut: number;
+  Distance: number;
+  Source: string;
 }
 
-export interface Aircraft {
-  code: string;
-}
-
-export interface OperatingCarrier {
-  carrierCode: string;
-}
-
-export interface Fee {
-  amount: string;
-  type: 'SUPPLIER' | 'TICKETING';
-}
-
-export interface Money {
-  currency: Currency;
-  total: string;
-  base: string;
-  grandTotal?: string;
-  fees?: Fee[];
-}
-
-export interface BaggageAllowance {
-  quantity: number;
-}
-
-export interface FareDetailsSegment {
-  segmentId: string;
-  cabin: string;
-  class: string;
-  brandedFare: string;
-  brandedFareLabel?: string;
-  fareBasis: string;
-  includedCabinBags?: BaggageAllowance;
-  includedCheckedBags?: BaggageAllowance;
-}
-
-export interface Segment {
-  id: string;
-  departure: Location;
-  arrival: Location;
-  carrierCode: string;
-  number: string;
-  aircraft: Aircraft;
-  operating: OperatingCarrier;
-  duration: string;
-  numberOfStops: number;
-  blacklistedInEU: boolean;
-}
-
-export interface Itinerary {
-  duration: string;
-  segments: Segment[];
-}
-
-export interface PricingOptions {
-  fareType: FareType[];
-  includedCheckedBagsOnly: boolean;
-}
-
-export interface TravelerPricing {
-  travelerId: string;
-  fareOption: string;
-  travelerType: TravelerType;
-  price: Money;
-  fareDetailsBySegment: FareDetailsSegment[];
-}
-
-export interface FlightOffer {
-  id: string;
-  source: string;
-  instantTicketingRequired: boolean;
-  nonHomogeneous: boolean;
-  oneWay: boolean;
-  lastTicketingDate: string;
-  lastTicketingDateTime: string;
-  numberOfBookableSeats: number;
-  itineraries: Itinerary[];
-  price: Money;
-  pricingOptions: PricingOptions;
-  validatingAirlineCodes: string[];
-  travelerPricings: TravelerPricing[];
-}
-
-export interface Flight {
-  id: string;
-  airline: string;
-  validatingAirlineCode: string;
-  flightNumber: string;
-  departure: Location;
-  arrival: Location;
-  duration: string;
-  price: number;
-  currency: Currency;
-  stops: number;
-  aircraft: string;
-  lastTicketingDate: string;
-  fareDetails: FareDetailsSegment[];
-  fullOffer: FlightOffer;
+export interface AvailabilityData {
+  ID: string;
+  RouteID: string;
+  Route: Route;
+  Date: string;
+  ParsedDate: string;
+  YAvailable: boolean;
+  WAvailable: boolean;
+  JAvailable: boolean;
+  FAvailable: boolean;
+  YAvailableRaw: boolean;
+  WAvailableRaw: boolean;
+  JAvailableRaw: boolean;
+  FAvailableRaw: boolean;
+  YMileageCost: string;
+  WMileageCost: string;
+  JMileageCost: string;
+  FMileageCost: string;
+  YMileageCostRaw: number;
+  WMileageCostRaw: number;
+  JMileageCostRaw: number;
+  FMileageCostRaw: number;
+  YDirectMileageCost: number;
+  WDirectMileageCost: number;
+  JDirectMileageCost: number;
+  FDirectMileageCost: number;
+  YDirectMileageCostRaw: number;
+  WDirectMileageCostRaw: number;
+  JDirectMileageCostRaw: number;
+  FDirectMileageCostRaw: number;
+  TaxesCurrency: string;
+  YTotalTaxes: number;
+  WTotalTaxes: number;
+  JTotalTaxes: number;
+  FTotalTaxes: number;
+  YTotalTaxesRaw: number;
+  WTotalTaxesRaw: number;
+  JTotalTaxesRaw: number;
+  FTotalTaxesRaw: number;
+  YDirectTotalTaxes: number;
+  WDirectTotalTaxes: number;
+  JDirectTotalTaxes: number;
+  FDirectTotalTaxes: number;
+  YDirectTotalTaxesRaw: number;
+  WDirectTotalTaxesRaw: number;
+  JDirectTotalTaxesRaw: number;
+  FDirectTotalTaxesRaw: number;
+  YRemainingSeats: number;
+  WRemainingSeats: number;
+  JRemainingSeats: number;
+  FRemainingSeats: number;
+  YRemainingSeatsRaw: number;
+  WRemainingSeatsRaw: number;
+  JRemainingSeatsRaw: number;
+  FRemainingSeatsRaw: number;
+  YDirectRemainingSeats: number;
+  WDirectRemainingSeats: number;
+  JDirectRemainingSeats: number;
+  FDirectRemainingSeats: number;
+  YDirectRemainingSeatsRaw: number;
+  WDirectRemainingSeatsRaw: number;
+  JDirectRemainingSeatsRaw: number;
+  FDirectRemainingSeatsRaw: number;
+  YAirlines: string;
+  WAirlines: string;
+  JAirlines: string;
+  FAirlines: string;
+  YAirlinesRaw: string;
+  WAirlinesRaw: string;
+  JAirlinesRaw: string;
+  FAirlinesRaw: string;
+  YDirectAirlines: string;
+  WDirectAirlines: string;
+  JDirectAirlines: string;
+  FDirectAirlines: string;
+  YDirectAirlinesRaw: string;
+  WDirectAirlinesRaw: string;
+  JDirectAirlinesRaw: string;
+  FDirectAirlinesRaw: string;
+  YDirect: boolean;
+  WDirect: boolean;
+  JDirect: boolean;
+  FDirect: boolean;
+  YDirectRaw: boolean;
+  WDirectRaw: boolean;
+  JDirectRaw: boolean;
+  FDirectRaw: boolean;
+  Source: string;
+  CreatedAt: string;
+  UpdatedAt: string;
+  AvailabilityTrips: any | null;
 }

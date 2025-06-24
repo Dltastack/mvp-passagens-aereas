@@ -4,14 +4,13 @@ import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PlaneIcon } from "lucide-react";
-import { api } from "@/services/axios";
 import { Header } from "@/components/header";
 import { SearchForm } from "@/components/searchForm";
 import type { SearchParamsProps } from "@/@types/searchParams";
-import type { Flight } from "@/@types/flight";
-import { mapFlightData } from "@/util/mapFlightData";
+import type { AvailabilityData } from "@/@types/flight";
 import { Loading } from "@/components/loading";
 import { FlightCard } from "@/components/flightCard";
+import { searchFlights } from "@/serverActions/searchFlights";
 
 export default function FlightSearch() {
   const [searchParams, setSearchParams] = useState<SearchParamsProps>({
@@ -22,7 +21,7 @@ export default function FlightSearch() {
     passengers: "1",
     fareOption: "",
   });
-  const [flights, setFlights] = useState<Flight[]>([]);
+  const [flights, setFlights] = useState<AvailabilityData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
@@ -32,12 +31,8 @@ export default function FlightSearch() {
     setHasSearched(true);
 
     try {
-      const params = buildSearchBody(searchParams);
-      const apiData = await fetchFlightData(params);
-      const mappedFlights = mapFlightData(apiData);
-
-      mappedFlights.sort((a, b) => a.price - b.price);
-      setFlights(mappedFlights);
+      const { data } = await searchFlights()
+      setFlights(data);
     } catch (error: any) {
       console.error("Erro ao buscar voos:", error.response ?? error.message);
       setFlights([]);
@@ -46,44 +41,6 @@ export default function FlightSearch() {
     }
   }
 
-  function buildSearchBody(params: SearchParamsProps) {
-    return {
-      currencyCode: "BRL",
-      originDestinations: [
-        {
-          id: "1",
-          originLocationCode: params.origin.toUpperCase(),
-          destinationLocationCode: params.destination.toUpperCase(),
-          departureDateTimeRange: {
-            date: params.departureDate,
-          },
-        }
-      ],
-      travelers: [
-        {
-          id: "1",
-          travelerType: "ADULT"
-        }
-      ],
-      sources: ["GDS"],
-      searchCriteria: {
-        maxFlightOffers: 50
-      },
-      travelerPricings: [
-        {
-          travelerId: "1",
-          fareOption: params.fareOption,
-          travelerType: "ADULT"
-        }
-      ]
-    };
-  }
-
-
-  async function fetchFlightData(params: Record<string, any>) {
-    const response = await api.post("/flight-offers", params);
-    return response.data;
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -118,7 +75,7 @@ export default function FlightSearch() {
             ) : (
               <div className="space-y-4">
                 {flights.map((flight) => (
-                  <FlightCard params={searchParams} key={flight.id} flight={flight} />
+                  <FlightCard params={searchParams} key={flight.ID} flight={flight} />
                 ))}
               </div>
             )}

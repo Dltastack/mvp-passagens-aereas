@@ -23,7 +23,7 @@ export function SearchForm({ handleSearch, searchParams, setSearchParams, isLoad
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSearch} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-2">
               <Label htmlFor="origin">Origem (IATA)</Label>
               <div className="relative">
@@ -108,10 +108,9 @@ export function SearchForm({ handleSearch, searchParams, setSearchParams, isLoad
                 <option value="INCLUSIVE_TOUR">Tour Incluso</option>
                 <option value="COMPANION">Acompanhante</option>
                 <option value="AIR_FRANCE_FAMILY">Família (Air France)</option>
-                {/* adicione outras se quiser */}
               </select>
             </div>
-          </div>
+          </div> */}
 
           <Button type="submit" className="w-full md:w-auto" disabled={isLoading}>
             {isLoading ? "Buscando..." : "Buscar Voos"}
