@@ -3,7 +3,7 @@
 import { api } from "@/services/axios"
 
 export async function searchFlights() {
-  const response = await api.get('/availability?take=500&skip=0')
+  const response = await api.get('/availability?take=1&skip=0')
 
   const { data } = response.data
 
