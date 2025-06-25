@@ -1,5 +1,6 @@
 'use server'
 
+import type { AvailabilityData } from "@/@types/flight";
 import { api } from "@/services/axios"
 
 export async function searchFlights(params: {
@@ -26,11 +27,11 @@ export async function searchFlights(params: {
   }).toString();
 
   const response = await api.get(`/availability?${query}`);
-  const { data } = response.data;
+  const { data } = response.data as { data: AvailabilityData[] }
 
   const available = data
-    .filter((flight: any) => flight.YMileageCost > 0)
-    .sort((a: any, b: any) => a.YMileageCostRaw - b.YMileageCostRaw);
+    .filter((flight) => flight.YMileageCostRaw > 0)
+    .sort((a, b) => a.YMileageCostRaw - b.YMileageCostRaw)
 
   return { data: available };
 }

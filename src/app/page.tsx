@@ -35,9 +35,6 @@ export default function FlightSearch() {
     try {
       const { data } = await searchFlights(searchParams)
       setFlights(data)
-    } catch (error: any) {
-      console.error("Erro ao buscar voos:", error.response ?? error.message)
-      setFlights([])
     } finally {
       setIsLoading(false)
     }

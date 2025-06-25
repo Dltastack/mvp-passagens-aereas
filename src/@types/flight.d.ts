@@ -99,5 +99,5 @@ export interface AvailabilityData {
   Source: string;
   CreatedAt: string;
   UpdatedAt: string;
-  AvailabilityTrips: any | null;
+  AvailabilityTrips: null;
 }

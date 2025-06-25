@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { Label } from "@/components/ui/label"
-import { PlaneIcon, CalendarIcon, UsersIcon, TicketIcon, Sparkles } from "lucide-react"
+import { PlaneIcon, CalendarIcon, TicketIcon, Sparkles } from "lucide-react"
 import { Button } from "./ui/button"
 import { Card, CardContent } from "./ui/card"
 import { Input } from "./ui/input"

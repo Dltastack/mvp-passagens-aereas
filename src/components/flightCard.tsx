@@ -100,7 +100,12 @@ export function FlightCard({ flight, params }: FlightCardProps) {
   const availabilityStatus = getAvailabilityStatus(selectedClassInfo.remainingSeats)
 
   async function handlePurchaseFlight() {
-    console.log("GUSTAVO GAY <3")
+    setIsLoading(true)
+    try {
+      console.log("GUSTAVO GAY <3")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
