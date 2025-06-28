@@ -1,4 +1,5 @@
 import { CheckIcon, XIcon } from "lucide-react"
+import { Button } from "./ui/button"
 
 export interface ClassInfo {
   name: string
@@ -25,9 +26,11 @@ interface ClassSelectButtonProps {
 export function ClassSelectButton({ classInfo, isSelected, onClick }: ClassSelectButtonProps) {
   const isAvailable = classInfo.available && classInfo.mileageCostRaw > 0
   return (
-    <button
+    <Button
+      title={classInfo.name}
+      variant={'ghost'}
       className={`
-        relative px-2 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 border
+        relative px-2 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 border hover:cursor-pointer
         ${isSelected
           ? isAvailable
             ? `${classInfo.bgColor} ${classInfo.color} border-current shadow-sm`
@@ -45,6 +48,6 @@ export function ClassSelectButton({ classInfo, isSelected, onClick }: ClassSelec
         <span className="truncate">{classInfo.shortName}</span>
         {isAvailable ? <CheckIcon className="h-2.5 w-2.5" /> : <XIcon className="h-2.5 w-2.5" />}
       </div>
-    </button>
+    </Button>
   )
 }

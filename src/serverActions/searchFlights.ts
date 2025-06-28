@@ -4,7 +4,7 @@ import type { AvailabilityData } from "@/@types/flight";
 import { api } from "@/services/axios"
 
 export async function searchFlights(params: {
-  source: string,
+  source?: string,
   cabin?: string,
   start_date?: string,
   end_date?: string,
@@ -14,17 +14,20 @@ export async function searchFlights(params: {
   cursor?: number,
   skip?: number
 }) {
-  const query = new URLSearchParams({
-    source: params.source,
-    ...(params.cabin && { cabin: params.cabin }),
-    ...(params.start_date && { start_date: params.start_date }),
-    ...(params.end_date && { end_date: params.end_date }),
-    ...(params.origin_region && { origin_region: params.origin_region }),
-    ...(params.destination_region && { destination_region: params.destination_region }),
-    ...(params.take && { take: params.take.toString() }),
-    ...(params.cursor && { cursor: params.cursor.toString() }),
-    ...(params.skip && { skip: params.skip.toString() }),
-  }).toString();
+  const queryParams: Record<string, string> = {};
+
+  if (params.source) queryParams.source = params.source;
+  if (params.cabin) queryParams.cabin = params.cabin;
+  if (params.start_date) queryParams.start_date = params.start_date;
+  if (params.end_date) queryParams.end_date = params.end_date;
+  if (params.origin_region) queryParams.origin_region = params.origin_region;
+  if (params.destination_region) queryParams.destination_region = params.destination_region;
+  if (params.take) queryParams.take = params.take.toString();
+  if (params.cursor) queryParams.cursor = params.cursor.toString();
+  if (params.skip) queryParams.skip = params.skip.toString();
+
+  const query = new URLSearchParams(queryParams).toString();
+
   const response = await api.get(`/availability?${query}`);
   const { data } = response.data as { data: AvailabilityData[] }
 
