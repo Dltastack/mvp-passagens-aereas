@@ -1,15 +1,12 @@
 "use client"
 
 import type React from "react"
-import { Label } from "@/components/ui/label"
-import { PlaneIcon, CalendarIcon, TicketIcon, Sparkles } from "lucide-react"
+import { PlaneIcon, Sparkles } from "lucide-react"
 import { Button } from "./ui/button"
 import { Card, CardContent } from "./ui/card"
-import { Input } from "./ui/input"
 import { Badge } from "./ui/badge"
 import type { SearchParamsProps } from "@/@types/searchParams"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
-import { SOURCE_MILES } from "@/CONSTANTS/SOURCE_MILES"
+
 
 interface SearchFormProps {
   handleSearch: (e: React.FormEvent) => Promise<void>
