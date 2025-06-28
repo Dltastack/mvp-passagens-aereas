@@ -25,7 +25,6 @@ export async function searchFlights(params: {
     ...(params.cursor && { cursor: params.cursor.toString() }),
     ...(params.skip && { skip: params.skip.toString() }),
   }).toString();
-
   const response = await api.get(`/availability?${query}`);
   const { data } = response.data as { data: AvailabilityData[] }
 

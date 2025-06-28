@@ -1,23 +1,37 @@
+"use client"
 
 import { useState } from "react"
-import { Card, CardContent } from "./ui/card"
+import { Card, CardContent, CardHeader } from "./ui/card"
 import type { AvailabilityData } from "@/@types/flight"
 import type { SearchParamsProps } from "@/@types/searchParams"
 import { AIRPORT_INFO } from "@/CONSTANTS/AIRPORT_INFO"
-import { FlightStatus } from "./flightStatus"
-import { ClassSelectButton, type ClassInfo } from "./classSelectButton"
-import { RouteHeader } from "./routerHeader"
-import { PricingSection } from "./pricingSection"
-import { getAvailabilityStatus } from "@/util/getAvailabilityStatus"
+import Image from "next/image"
+import { MapPinIcon, StarIcon } from "lucide-react"
+import { Button } from "./ui/button"
+import { Badge } from "./ui/badge"
 
 interface FlightCardProps {
   flight: AvailabilityData
   params: SearchParamsProps
 }
 
+interface ClassInfo {
+  name: string
+  shortName: string
+  code: string
+  available: boolean
+  remainingSeats: number
+  mileageCost: string
+  mileageCostRaw: number
+  totalTaxes: number
+  airlines: string
+  isDirect: boolean
+}
+
 export function FlightCard({ flight, params }: FlightCardProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [selectedClass, setSelectedClass] = useState<string>("Y")
+  const [imageError, setImageError] = useState(false)
 
   const origin = flight.Route.OriginAirport
   const destination = flight.Route.DestinationAirport
@@ -27,7 +41,6 @@ export function FlightCard({ flight, params }: FlightCardProps) {
     day: "2-digit",
     month: "short",
   })
-  const distance = flight.Route.Distance
   const currency = flight.TaxesCurrency
 
   const classes: ClassInfo[] = [
@@ -42,9 +55,6 @@ export function FlightCard({ flight, params }: FlightCardProps) {
       totalTaxes: flight.YTotalTaxes,
       airlines: flight.YAirlines,
       isDirect: flight.YDirect,
-      icon: "💺",
-      color: "text-blue-700",
-      bgColor: "bg-blue-50 border-blue-200",
     },
     {
       name: "Premium Economy",
@@ -57,9 +67,6 @@ export function FlightCard({ flight, params }: FlightCardProps) {
       totalTaxes: flight.WTotalTaxes,
       airlines: flight.WAirlines,
       isDirect: flight.WDirect,
-      icon: "🛋️",
-      color: "text-purple-700",
-      bgColor: "bg-purple-50 border-purple-200",
     },
     {
       name: "Executiva",
@@ -72,9 +79,6 @@ export function FlightCard({ flight, params }: FlightCardProps) {
       totalTaxes: flight.JTotalTaxes,
       airlines: flight.JAirlines,
       isDirect: flight.JDirect,
-      icon: "✈️",
-      color: "text-emerald-700",
-      bgColor: "bg-emerald-50 border-emerald-200",
     },
     {
       name: "Primeira",
@@ -87,9 +91,6 @@ export function FlightCard({ flight, params }: FlightCardProps) {
       totalTaxes: flight.FTotalTaxes,
       airlines: flight.FAirlines,
       isDirect: flight.FDirect,
-      icon: "👑",
-      color: "text-amber-700",
-      bgColor: "bg-amber-50 border-amber-200",
     },
   ]
 
@@ -97,58 +98,147 @@ export function FlightCard({ flight, params }: FlightCardProps) {
   const availableClasses = classes.filter((c) => c.available && c.mileageCostRaw > 0)
   const bestPrice = Math.min(...availableClasses.map((c) => c.mileageCostRaw))
   const isSelectedBestPrice = selectedClassInfo.mileageCostRaw === bestPrice
-  const availabilityStatus = getAvailabilityStatus(selectedClassInfo.remainingSeats)
+
+  function formatTaxes(taxes: number, currency: string) {
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: currency || "CAD",
+    }).format(taxes)
+  }
+
+  function formatMileageCost(mileageCost: string, mileageCostRaw: number) {
+    if (mileageCost && mileageCost !== "0") {
+      return mileageCost
+    }
+    return mileageCostRaw.toLocaleString()
+  }
 
   async function handlePurchaseFlight() {
     setIsLoading(true)
     try {
-      console.log("GUSTAVO GAY <3")
+      console.log("Selecionando voo...")
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <Card className="group hover:shadow-lg hover:shadow-blue-100/50 transition-all duration-300 border border-gray-200/60 bg-white/80 backdrop-blur-sm hover:bg-white h-full flex flex-col">
-      <CardContent className="p-4 flex flex-col h-full">
-        {/* Header Section */}
-        <div className="flex flex-col space-y-3 mb-4">
-          <div className="flex items-center justify-center">
-            <RouteHeader
-              origin={origin}
-              originCity={originCity}
-              destination={destination}
-              destinationCity={destinationCity}
-              distance={distance}
-            />
-          </div>
-          <FlightStatus
-            date={date}
-            isDirect={selectedClassInfo.isDirect}
-            availabilityStatus={availabilityStatus}
+    <Card className="group hover:shadow-lg transition-all duration-300 border border-gray-200 pt-0 bg-white h-full flex flex-col overflow-hidden">
+      {/* Imagem do Destino */}
+      <CardHeader className="relative h-40 w-full overflow-hidden p-0">
+        {!imageError ? (
+          <Image
+            src={`/airports/${destination}.png`}
+            fill
+            alt={`${destinationCity} - ${destination}`}
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            onError={() => setImageError(true)}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-blue-100 to-blue-300 flex items-center justify-center">
+            <div className="text-center">
+              <MapPinIcon className="h-12 w-12 text-blue-500 mx-auto mb-2" />
+              <p className="text-lg font-medium text-blue-700">{destinationCity}</p>
+              <p className="text-sm text-blue-600">{destination}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Overlay escuro */}
+        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all h-full" />
+
+        {/* Informações do destino */}
+        <div className="absolute bottom-3 left-3 text-white">
+          <h3 className="text-lg font-bold drop-shadow-lg">{destinationCity}</h3>
+          <p className="text-sm opacity-90 drop-shadow-lg">{destination}</p>
         </div>
+
+        {/* Data */}
+        <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-1.5">
+          <p className="text-sm font-medium text-gray-800">{date}</p>
+        </div>
+      </CardHeader>
+
+      <CardContent className="p-4 flex flex-col flex-1">
+        {/* Seleção de Classes */}
         <div className="mb-4">
-          <div className="text-xs text-gray-600 font-medium mb-2">Classes:</div>
-          <div className="grid grid-cols-2 gap-1">
-            {classes.map((classInfo) => (
-              <ClassSelectButton
-                key={classInfo.code}
-                classInfo={classInfo}
-                isSelected={selectedClass === classInfo.code}
-                onClick={() => setSelectedClass(classInfo.code)}
-              />
-            ))}
+          <div className="flex gap-2">
+            {classes.map((classInfo) => {
+              const isSelected = selectedClass === classInfo.code
+              const isAvailable = classInfo.available && classInfo.mileageCostRaw > 0
+
+              return (
+                <button
+                  key={classInfo.code}
+                  className={`
+                    flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 border
+                    ${isSelected
+                      ? isAvailable
+                        ? "bg-blue-50 text-blue-700 border-blue-200"
+                        : "bg-gray-100 text-gray-500 border-gray-300"
+                      : isAvailable
+                        ? "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+                        : "bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed opacity-60"
+                    }
+                  `}
+                  onClick={() => setSelectedClass(classInfo.code)}
+                  disabled={!isAvailable}
+                >
+                  {classInfo.shortName}
+                </button>
+              )
+            })}
           </div>
         </div>
-        <PricingSection
-          selectedClassInfo={selectedClassInfo}
-          isSelectedBestPrice={isSelectedBestPrice}
-          currency={currency}
-          params={params}
-          isLoading={isLoading}
-          handlePurchaseFlight={handlePurchaseFlight}
-        />
+
+        {/* Informações da Classe Selecionada */}
+        <div className="flex-1 flex flex-col">
+          <div className="mb-3">
+            <div className="flex items-center gap-2 mb-1">
+              <h4 className="font-semibold text-gray-900">{selectedClassInfo.name}</h4>
+              {isSelectedBestPrice && (
+                <Badge className="bg-green-100 text-green-700 border-green-200 text-xs px-2 py-0.5">
+                  <StarIcon className="h-3 w-3 mr-1" />
+                  Melhor preço
+                </Badge>
+              )}
+            </div>
+
+            {selectedClassInfo.available && selectedClassInfo.mileageCostRaw > 0 ? (
+              <div className="space-y-1">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-bold text-gray-900">
+                    {formatMileageCost(selectedClassInfo.mileageCost, selectedClassInfo.mileageCostRaw)}
+                  </span>
+                  <span className="text-sm text-gray-600 font-medium">milhas</span>
+                </div>
+                <p className="text-sm text-gray-600">
+                  + {formatTaxes(selectedClassInfo.totalTaxes, currency)} para {params.passengers} passageiro
+                  {Number(params.passengers) > 1 ? "s" : ""}
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">Indisponível</p>
+            )}
+          </div>
+
+          {/* Botão de Seleção */}
+          <Button
+            onClick={handlePurchaseFlight}
+            disabled={isLoading || !selectedClassInfo.available || selectedClassInfo.mileageCostRaw === 0}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 mt-auto"
+          >
+            {isLoading ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>Carregando...</span>
+              </div>
+            ) : (
+              "Selecionar"
+            )}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   )
