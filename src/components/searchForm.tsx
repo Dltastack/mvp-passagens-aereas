@@ -15,11 +15,7 @@ interface SearchFormProps {
   isLoading: boolean
 }
 
-export function SearchForm({ handleSearch, searchParams, setSearchParams, isLoading }: SearchFormProps) {
-  const getMinDate = () => {
-    const today = new Date()
-    return today.toISOString().split("T")[0]
-  }
+export function SearchForm({ handleSearch, isLoading }: SearchFormProps) {
 
   return (
     <Card className="mb-6 border border-gray-200 shadow-none bg-white">
