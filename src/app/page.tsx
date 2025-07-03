@@ -34,6 +34,7 @@ export default function FlightSearch() {
 
     try {
       const { data } = await searchFlights(searchParams)
+
       setFlights(data)
     } finally {
       setIsLoading(false)

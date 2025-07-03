@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent } from "./ui/card"
 import type { AvailabilityData } from "@/@types/flight"
 import type { SearchParamsProps } from "@/@types/searchParams"
@@ -11,6 +11,21 @@ import { Button } from "./ui/button"
 import { Badge } from "./ui/badge"
 import { ClassSelectButton, type ClassInfo } from "./classSelectButton"
 
+// ✅ Função para buscar taxa de câmbio
+async function getExchangeRateToBRL(from: string): Promise<number> {
+  const base = from?.toUpperCase();
+  if (!base || base === "BRL") return 1;
+
+  try {
+    const res = await fetch(`https://api.exchangerate.host/latest?base=${base}&symbols=BRL`);
+    const data = await res.json();
+    return data?.rates?.BRL ?? 1;
+  } catch (err) {
+    console.error(`Erro ao buscar taxa para ${base} → BRL`, err);
+    return 1;
+  }
+}
+
 interface FlightCardProps {
   flight: AvailabilityData
   params: SearchParamsProps
@@ -20,6 +35,7 @@ export function FlightCard({ flight, params }: FlightCardProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [selectedClass, setSelectedClass] = useState<string>("Y")
   const [imageError, setImageError] = useState(false)
+  const [convertedTaxes, setConvertedTaxes] = useState<number | null>(null)
 
   const origin = flight.Route.OriginAirport
   const destination = flight.Route.DestinationAirport
@@ -99,25 +115,34 @@ export function FlightCard({ flight, params }: FlightCardProps) {
   const bestPrice = Math.min(...availableClasses.map((c) => c.mileageCostRaw))
   const isSelectedBestPrice = selectedClassInfo.mileageCostRaw === bestPrice
 
-  function formatTaxes(taxes: number, currency: string) {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: currency || "CAD",
-    }).format(taxes)
-  }
+  // ✅ Converter taxas assim que a classe ou moeda mudar
+  useEffect(() => {
+    async function convertTaxes() {
+      const isAvailable = selectedClassInfo.available && selectedClassInfo.totalTaxes > 0;
+      if (!isAvailable) return;
+
+      if (currency.toUpperCase() === "BRL") {
+        setConvertedTaxes(selectedClassInfo.totalTaxes);
+      } else {
+        const rate = await getExchangeRateToBRL(currency);
+        setConvertedTaxes(selectedClassInfo.totalTaxes * rate);
+      }
+    }
+
+    convertTaxes();
+  }, [selectedClassInfo, currency]);
 
   function formatMileageCost(mileageCost: string, mileageCostRaw: number) {
-    if (mileageCost && mileageCost !== "0") {
-      return mileageCost
-    }
-    return mileageCostRaw.toLocaleString()
+    return mileageCost && mileageCost !== "0"
+      ? mileageCost
+      : mileageCostRaw.toLocaleString()
   }
 
   async function handlePurchaseFlight() {
     setIsLoading(true)
     try {
       await new Promise(resolve => setTimeout(resolve, 1500))
-      console.log('oi')
+      console.log("Compra simulada")
     } finally {
       setIsLoading(false)
     }
@@ -125,7 +150,6 @@ export function FlightCard({ flight, params }: FlightCardProps) {
 
   return (
     <Card className="group hover:shadow-lg pt-0 transition-all duration-300 border border-gray-200 bg-white h-full flex flex-col overflow-hidden">
-      {/* Imagem do Destino */}
       <div className="relative h-40 w-full overflow-hidden">
         {!imageError ? (
           <Image
@@ -145,22 +169,17 @@ export function FlightCard({ flight, params }: FlightCardProps) {
             </div>
           </div>
         )}
-
-        {/* Overlay escuro */}
         <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10" />
-
         <div className="absolute bottom-3 left-3 text-white">
           <h3 className="text-lg font-bold drop-shadow-lg">{destinationCity}</h3>
           <p className="text-sm opacity-90 drop-shadow-lg">{destination}</p>
         </div>
-
         <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-1.5">
           <p className="text-sm font-medium text-gray-800">{date}</p>
         </div>
       </div>
 
       <CardContent className="p-4 -mt-7 flex flex-col flex-1">
-        {/* Informações da Rota */}
         <div className="mb-4 text-center">
           <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
             <span className="font-medium">{origin}</span>
@@ -172,7 +191,6 @@ export function FlightCard({ flight, params }: FlightCardProps) {
           </p>
         </div>
 
-        {/* Seleção de Classes */}
         <div className="mb-4">
           <div className="grid grid-cols-2 gap-1">
             {classes.map((classInfo) => (
@@ -186,7 +204,6 @@ export function FlightCard({ flight, params }: FlightCardProps) {
           </div>
         </div>
 
-        {/* Informações da Classe Selecionada */}
         <div className="flex-1 flex flex-col">
           <div className="mb-3">
             <div className="flex items-center gap-2 mb-1">
@@ -208,8 +225,14 @@ export function FlightCard({ flight, params }: FlightCardProps) {
                   <span className="text-sm text-gray-600 font-medium">milhas</span>
                 </div>
                 <p className="text-sm text-gray-600">
-                  + {formatTaxes(selectedClassInfo.totalTaxes, currency)} para {params.passengers} passageiro
-                  {Number(params.passengers) > 1 ? "s" : ""}
+                  +{" "}
+                  {convertedTaxes != null
+                    ? new Intl.NumberFormat("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
+                    }).format(convertedTaxes)
+                    : "Carregando..."}{" "}
+                  para {params.passengers} passageiro{Number(params.passengers) > 1 ? "s" : ""}
                 </p>
               </div>
             ) : (
@@ -217,7 +240,6 @@ export function FlightCard({ flight, params }: FlightCardProps) {
             )}
           </div>
 
-          {/* Botão de Seleção */}
           <Button
             onClick={handlePurchaseFlight}
             disabled={isLoading || !selectedClassInfo.available || selectedClassInfo.mileageCostRaw === 0}
