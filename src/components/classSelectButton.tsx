@@ -3,18 +3,18 @@ import { Button } from "./ui/button"
 
 export interface ClassInfo {
   name: string
-  shortName: string
   code: string
-  available: boolean
-  remainingSeats: number
   mileageCost: string
   mileageCostRaw: number
   totalTaxes: number
   airlines: string
-  isDirect: boolean
-  icon: string
-  color: string
+  available: boolean
   bgColor: string
+  color: string
+  icon: string
+  isDirect: boolean
+  remainingSeats: number
+  shortName: string
 }
 
 interface ClassSelectButtonProps {

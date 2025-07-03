@@ -32,7 +32,6 @@ export function FlightCard({ flight, params }: FlightCardProps) {
     month: "short",
   })
   const currency = flight.TaxesCurrency
-  const isLondonAirport = ['LHR', 'LGW', 'LCY', 'LTN', 'STN'].includes(destination)
 
   const classes: ClassInfo[] = [
     {
