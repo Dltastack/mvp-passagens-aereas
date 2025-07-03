@@ -29,7 +29,7 @@ export function FlightCard({ flight, params }: FlightCardProps) {
   const destinationCity = AIRPORT_INFO[destination]?.city || flight.Route.DestinationRegion
   const date = new Date(flight.Date).toLocaleDateString("pt-BR", {
     day: "2-digit",
-    month: "short",
+    month: "long",
   })
   const currency = flight.TaxesCurrency
 
