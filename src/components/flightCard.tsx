@@ -218,22 +218,26 @@ export function FlightCard({ flight, params }: FlightCardProps) {
 
             {selectedClassInfo.available && selectedClassInfo.mileageCostRaw > 0 ? (
               <div className="space-y-1">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-bold text-gray-900">
-                    {formatMileageCost(selectedClassInfo.mileageCost, selectedClassInfo.mileageCostRaw)}
-                  </span>
-                  <span className="text-sm text-gray-600 font-medium">milhas</span>
+                <div className="flex justify-between items-baseline gap-1">
+                  <div className="space-x-1">
+                    <span className="text-2xl font-bold text-gray-900">
+                      {formatMileageCost(selectedClassInfo.mileageCost, selectedClassInfo.mileageCostRaw)}
+                    </span>
+                    <span className="text-sm text-gray-600 font-medium">milhas</span>
+                  </div>
+
+                  <span className="font-semibold">OU{" "}</span>
+
+                  <p className="text-gray-900 text-xl font-bold">
+                    {convertedTaxes != null
+                      ? new Intl.NumberFormat("pt-BR", {
+                        style: "currency",
+                        currency: "BRL",
+                      }).format(convertedTaxes)
+                      : "Carregando..."}{" "}
+                  </p>
                 </div>
-                <p className="text-sm text-gray-600">
-                  +{" "}
-                  {convertedTaxes != null
-                    ? new Intl.NumberFormat("pt-BR", {
-                      style: "currency",
-                      currency: "BRL",
-                    }).format(convertedTaxes)
-                    : "Carregando..."}{" "}
-                  para {params.passengers} passageiro{Number(params.passengers) > 1 ? "s" : ""}
-                </p>
+
               </div>
             ) : (
               <p className="text-sm text-gray-500">Indisponível</p>

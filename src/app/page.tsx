@@ -16,12 +16,8 @@ import { searchFlights } from "@/serverActions/searchFlights"
 export default function FlightSearch() {
   const [searchParams, setSearchParams] = useState<SearchParamsProps>({
     origin: "",
-    destination: "",
-    departureDate: "",
-    returnDate: "",
-    passengers: "1",
-    fareOption: "",
-    source: "",
+    destination: [],
+    continent: 'North America'
   })
   const [flights, setFlights] = useState<AvailabilityData[]>([])
   const [isLoading, setIsLoading] = useState(false)
