@@ -5,16 +5,21 @@ import { Button } from "./ui/button"
 import { Badge } from "./ui/badge"
 import { MapPinIcon, GlobeIcon, ChevronRightIcon } from "lucide-react"
 import { cities, continents, countries } from "@/CONSTANTS/DESTINATIONS"
+import { searchFlights } from "@/serverActions/searchFlights"
+import type { SearchParamsProps } from "@/@types/searchParams"
 
 interface DestinationSelectorProps {
   onDestinationSelect: (destination: { code: string[]; city: string; country: string; continent: string }) => void
   onClose: () => void
+  onSearchComplete?: (flights: any[]) => void
+  onSearchStart?: () => void
 }
 
-export function DestinationSelector({ onDestinationSelect }: DestinationSelectorProps) {
+export function DestinationSelector({ onDestinationSelect, onSearchComplete, onSearchStart }: DestinationSelectorProps) {
   const [selectedContinent, setSelectedContinent] = useState<string>("")
   const [selectedCountry, setSelectedCountry] = useState<string>("")
   const [step, setStep] = useState<"continent" | "country" | "city">("continent")
+  const [isSearching, setIsSearching] = useState(false)
 
   const handleContinentSelect = (continentId: string) => {
     setSelectedContinent(continentId)
@@ -26,16 +31,45 @@ export function DestinationSelector({ onDestinationSelect }: DestinationSelector
     setStep("city")
   }
 
-  const handleCitySelect = (city: { code: string[]; name: string }) => {
+  const handleCitySelect = async (city: { code: string[]; name: string }) => {
     const continent = continents.find((c) => c.id === selectedContinent)
     const country = countries[selectedContinent as keyof typeof countries]?.find((c) => c.id === selectedCountry)
 
-    onDestinationSelect({
+    const destination = {
       code: city.code,
       city: city.name,
       country: country?.name || "",
       continent: continent?.id || "",
-    })
+    }
+
+    onDestinationSelect(destination)
+
+    // Chamar searchFlights automaticamente
+    if (onSearchStart) {
+      onSearchStart()
+    }
+
+    setIsSearching(true)
+
+    try {
+      const searchParams: SearchParamsProps = {
+        destination: city.code,
+        continent: continent?.id || "",
+      }
+
+      const { data } = await searchFlights(searchParams)
+
+      if (onSearchComplete) {
+        onSearchComplete(data)
+      }
+    } catch (error) {
+      console.error("Erro ao buscar voos:", error)
+      if (onSearchComplete) {
+        onSearchComplete([])
+      }
+    } finally {
+      setIsSearching(false)
+    }
 
     // Reset para permitir nova seleção
     setStep("continent")
@@ -184,41 +218,45 @@ export function DestinationSelector({ onDestinationSelect }: DestinationSelector
         <div className="space-y-4 sm:space-y-6">
           <h4 className="text-base sm:text-lg font-semibold text-center text-gray-800">Selecione a cidade</h4>
 
-          {/* Mobile: Grid 1 coluna */}
-          <div className="block sm:hidden">
-            <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto">
-              {cities[selectedCountry as keyof typeof cities]?.map((city) => (
-                <Button
-                  key={city.code[0]}
-                  onClick={() => handleCitySelect(city)}
-                  variant="ghost"
-                  className="justify-start h-12 text-sm hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 border border-gray-200 hover:border-blue-300 rounded-lg"
-                >
-                  <MapPinIcon className="h-4 w-4 mr-2 text-blue-500 flex-shrink-0" />
-                  <span className="font-medium break-words text-left">{city.name}</span>
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          {/* Desktop: Grid centralizado */}
-          <div className="hidden sm:block">
-            <div className="flex justify-center">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 max-h-80 overflow-y-auto max-w-5xl w-full">
-                {cities[selectedCountry as keyof typeof cities]?.map((city) => (
-                  <Button
-                    key={city.code[0]}
-                    onClick={() => handleCitySelect(city)}
-                    variant="ghost"
-                    className="justify-start h-12 text-sm hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 border border-gray-200 hover:border-blue-300 rounded-lg"
-                  >
-                    <MapPinIcon className="h-4 w-4 mr-2 text-blue-500 flex-shrink-0" />
-                    <span className="font-medium break-words text-left">{city.name}</span>
-                  </Button>
-                ))}
+          {!isSearching && (
+            <>
+              {/* Mobile: Grid 1 coluna */}
+              <div className="block sm:hidden">
+                <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto">
+                  {cities[selectedCountry as keyof typeof cities]?.map((city) => (
+                    <Button
+                      key={city.code[0]}
+                      onClick={() => handleCitySelect(city)}
+                      variant="ghost"
+                      className="justify-start h-12 text-sm hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 border border-gray-200 hover:border-blue-300 rounded-lg"
+                    >
+                      <MapPinIcon className="h-4 w-4 mr-2 text-blue-500 flex-shrink-0" />
+                      <span className="font-medium break-words text-left">{city.name}</span>
+                    </Button>
+                  ))}
+                </div>
               </div>
-            </div>
-          </div>
+
+              {/* Desktop: Grid centralizado */}
+              <div className="hidden sm:block">
+                <div className="flex justify-center">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 max-h-80 overflow-y-auto max-w-5xl w-full">
+                    {cities[selectedCountry as keyof typeof cities]?.map((city) => (
+                      <Button
+                        key={city.code[0]}
+                        onClick={() => handleCitySelect(city)}
+                        variant="ghost"
+                        className="justify-start h-12 text-sm hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 border border-gray-200 hover:border-blue-300 rounded-lg"
+                      >
+                        <MapPinIcon className="h-4 w-4 mr-2 text-blue-500 flex-shrink-0" />
+                        <span className="font-medium break-words text-left">{city.name}</span>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

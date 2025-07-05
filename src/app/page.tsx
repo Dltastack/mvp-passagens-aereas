@@ -35,6 +35,16 @@ export default function FlightSearch() {
     }
   }
 
+  const handleSearchStart = () => {
+    setIsLoading(true)
+    setHasSearched(true)
+  }
+
+  const handleSearchComplete = (searchResults: AvailabilityData[]) => {
+    setFlights(searchResults)
+    setIsLoading(false)
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <Header />
@@ -45,6 +55,8 @@ export default function FlightSearch() {
           handleSearch={handleSearch}
           searchParams={searchParams}
           setSearchParams={setSearchParams}
+          onSearchComplete={handleSearchComplete}
+          onSearchStart={handleSearchStart}
         />
 
         {isLoading && <Loading />}

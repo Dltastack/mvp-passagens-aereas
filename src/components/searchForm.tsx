@@ -19,9 +19,11 @@ interface SearchFormProps {
   setSearchParams: Dispatch<SetStateAction<SearchParamsProps>>
   searchParams: SearchParamsProps
   isLoading: boolean
+  onSearchComplete?: (flights: any[]) => void
+  onSearchStart?: () => void
 }
 
-export function SearchForm({ handleSearch, setSearchParams, isLoading }: SearchFormProps) {
+export function SearchForm({ handleSearch, setSearchParams, isLoading, onSearchComplete, onSearchStart }: SearchFormProps) {
   const [selectedDestination, setSelectedDestination] = useState<{
     code: string[]
     city: string
@@ -66,6 +68,8 @@ export function SearchForm({ handleSearch, setSearchParams, isLoading }: SearchF
                 <DestinationSelector
                   onDestinationSelect={handleDestinationSelect}
                   onClose={() => { }}
+                  onSearchComplete={onSearchComplete}
+                  onSearchStart={onSearchStart}
                 />
               </CardContent>
             </Card>
