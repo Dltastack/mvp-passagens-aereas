@@ -12,6 +12,7 @@ import { formatTaxes } from "@/util/formatTaxes"
 import { getAirlineForClass } from "@/util/getAirlineForClass"
 import { PassengerSelector } from "./passengerSelector"
 import { ModalFlightStatus } from "./modalFlightStatus"
+import { getExchangeRateToBRL } from "@/util/getExchangeRateToBRL"
 
 interface FlightBookingModalProps {
   isOpen: boolean
@@ -39,21 +40,6 @@ interface PassengerCounts {
   adults: number
   children: number
   babies: number
-}
-
-// ✅ Função para buscar taxa de câmbio
-async function getExchangeRateToBRL(from: string): Promise<number> {
-  const base = from?.toUpperCase();
-  if (!base || base === "BRL") return 1;
-
-  try {
-    const res = await fetch(`https://api.exchangerate.host/latest?base=${base}&symbols=BRL`);
-    const data = await res.json();
-    return data?.rates?.BRL ?? 1;
-  } catch (err) {
-    console.error(`Erro ao buscar taxa para ${base} → BRL`, err);
-    return 1;
-  }
 }
 
 export function FlightBookingModal({ isOpen, onClose, flight, selectedClass, currency }: FlightBookingModalProps) {

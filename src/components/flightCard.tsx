@@ -11,21 +11,7 @@ import { Button } from "./ui/button"
 import { Badge } from "./ui/badge"
 import { ClassSelectButton, type ClassInfo } from "./classSelectButton"
 import { FlightBookingModal } from "./flightBookingModal"
-
-// ✅ Função para buscar taxa de câmbio
-async function getExchangeRateToBRL(from: string): Promise<number> {
-  const base = from?.toUpperCase();
-  if (!base || base === "BRL") return 1;
-
-  try {
-    const res = await fetch(`https://api.exchangerate.host/latest?base=${base}&symbols=BRL`);
-    const data = await res.json();
-    return data?.rates?.BRL ?? 1;
-  } catch (err) {
-    console.error(`Erro ao buscar taxa para ${base} → BRL`, err);
-    return 1;
-  }
-}
+import { getExchangeRateToBRL } from "@/util/getExchangeRateToBRL"
 
 interface FlightCardProps {
   flight: AvailabilityData
@@ -117,7 +103,7 @@ export function FlightCard({ flight, params }: FlightCardProps) {
   const bestPrice = Math.min(...availableClasses.map((c) => c.mileageCostRaw))
   const isSelectedBestPrice = selectedClassInfo.mileageCostRaw === bestPrice
 
-  // ✅ Converter taxas assim que a classe ou moeda mudar
+
   useEffect(() => {
     async function convertTaxes() {
       const isAvailable = selectedClassInfo.available && selectedClassInfo.totalTaxes > 0;
