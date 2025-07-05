@@ -16,7 +16,7 @@ import { searchFlights } from "@/serverActions/searchFlights"
 export default function FlightSearch() {
   const [searchParams, setSearchParams] = useState<SearchParamsProps>({
     destination: [],
-    continent: 'North America'
+    continent: ''
   })
   const [flights, setFlights] = useState<AvailabilityData[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -29,7 +29,6 @@ export default function FlightSearch() {
 
     try {
       const { data } = await searchFlights(searchParams)
-
       setFlights(data)
     } finally {
       setIsLoading(false)

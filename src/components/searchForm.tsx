@@ -84,7 +84,7 @@ export function SearchForm({ handleSearch, setSearchParams, isLoading }: SearchF
                     <Button
                       type="submit"
                       className="px-4 h-9 text-sm bg-blue-600 hover:bg-blue-700"
-                      disabled={isLoading || !selectedDestination}
+                      disabled={isLoading}
                     >
                       {isLoading ? (
                         <div className="flex items-center gap-1">

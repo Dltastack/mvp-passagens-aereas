@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogTitle } from "../ui/dialog"
 import { Button } from "../ui/button"
 import { Card, CardContent } from "../ui/card"
@@ -41,6 +41,21 @@ interface PassengerCounts {
   babies: number
 }
 
+// ✅ Função para buscar taxa de câmbio
+async function getExchangeRateToBRL(from: string): Promise<number> {
+  const base = from?.toUpperCase();
+  if (!base || base === "BRL") return 1;
+
+  try {
+    const res = await fetch(`https://api.exchangerate.host/latest?base=${base}&symbols=BRL`);
+    const data = await res.json();
+    return data?.rates?.BRL ?? 1;
+  } catch (err) {
+    console.error(`Erro ao buscar taxa para ${base} → BRL`, err);
+    return 1;
+  }
+}
+
 export function FlightBookingModal({ isOpen, onClose, flight, selectedClass, currency }: FlightBookingModalProps) {
   const [passengers, setPassengers] = useState<PassengerCounts>({
     adults: 1,
@@ -48,6 +63,7 @@ export function FlightBookingModal({ isOpen, onClose, flight, selectedClass, cur
     babies: 0,
   })
   const [isLoading, setIsLoading] = useState(false)
+  const [convertedTaxes, setConvertedTaxes] = useState<number | null>(null)
 
   if (!flight) return null
 
@@ -57,11 +73,26 @@ export function FlightBookingModal({ isOpen, onClose, flight, selectedClass, cur
   const destinationCity = AIRPORT_INFO[destination]?.city || flight.Route.DestinationRegion
   const airline = getAirlineForClass(flight, selectedClass.code)
 
-
-
   const payingPassengers = passengers.adults + passengers.children
   const totalMiles = selectedClass.mileageCostRaw * payingPassengers
   const totalTaxes = selectedClass.totalTaxes * payingPassengers
+
+  // ✅ Converter taxas assim que a classe ou moeda mudar
+  useEffect(() => {
+    async function convertTaxes() {
+      const isAvailable = selectedClass.available && selectedClass.totalTaxes > 0;
+      if (!isAvailable) return;
+
+      if (currency.toUpperCase() === "BRL") {
+        setConvertedTaxes(selectedClass.totalTaxes);
+      } else {
+        const rate = await getExchangeRateToBRL(currency);
+        setConvertedTaxes(selectedClass.totalTaxes * rate);
+      }
+    }
+
+    convertTaxes();
+  }, [selectedClass, currency]);
 
   async function handleBooking() {
     setIsLoading(true)
@@ -114,9 +145,22 @@ export function FlightBookingModal({ isOpen, onClose, flight, selectedClass, cur
               <div className="space-y-4">
                 <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                   <span className="text-gray-700 font-medium">Ida:</span>
-                  <span className="font-bold text-lg">
-                    {formatMileageCost(selectedClass.mileageCost, selectedClass.mileageCostRaw)} milhas + taxas
-                  </span>
+                  <div className="text-right">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-lg font-bold text-gray-900">
+                        {formatMileageCost(selectedClass.mileageCost, selectedClass.mileageCostRaw)}
+                      </span>
+                      <span className="text-sm text-gray-600 font-medium">milhas</span>
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      OU {convertedTaxes != null
+                        ? new Intl.NumberFormat("pt-BR", {
+                          style: "currency",
+                          currency: "BRL",
+                        }).format(convertedTaxes)
+                        : "Carregando..."}
+                    </div>
+                  </div>
                 </div>
 
                 {payingPassengers > 1 && (
@@ -124,7 +168,22 @@ export function FlightBookingModal({ isOpen, onClose, flight, selectedClass, cur
                     <span className="text-gray-700 font-medium">
                       Total para {payingPassengers} passageiro{payingPassengers > 1 ? "s" : ""} que pagam:
                     </span>
-                    <span className="font-bold text-lg">{totalMiles.toLocaleString()} milhas + taxas</span>
+                    <div className="text-right">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-lg font-bold text-blue-600">
+                          {totalMiles.toLocaleString()}
+                        </span>
+                        <span className="text-sm text-gray-600 font-medium">milhas</span>
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        OU {convertedTaxes != null
+                          ? new Intl.NumberFormat("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          }).format(convertedTaxes * payingPassengers)
+                          : "Carregando..."}
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -143,7 +202,12 @@ export function FlightBookingModal({ isOpen, onClose, flight, selectedClass, cur
                         {totalMiles.toLocaleString()} milhas
                       </div>
                       <div className="text-lg lg:text-xl font-semibold text-gray-700">
-                        + {formatTaxes(totalTaxes, currency)}
+                        OU {convertedTaxes != null
+                          ? new Intl.NumberFormat("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          }).format(convertedTaxes * payingPassengers)
+                          : "Carregando..."}
                       </div>
                     </div>
                   </div>

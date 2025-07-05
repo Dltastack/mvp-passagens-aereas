@@ -33,17 +33,14 @@ export async function searchFlights(params: SearchParamsProps) {
   };
 
   const query = new URLSearchParams(queryParams).toString().replace(/\+/g, "%20");
-
   try {
     const response = await api.get(`/availability?${query}`);
     const flights = (response.data?.data || []) as AvailabilityData[];
-
     const filtered = flights.filter((flight) =>
       flight.YMileageCostRaw > 0 &&
       BRAZILIAN_AIRPORTS.has(flight.Route.OriginAirport) &&
-      Array.isArray(destination) &&
-      destination.includes(flight.Route.DestinationAirport)
-    );
+      (!Array.isArray(destination) || destination.length <= 1 || destination.includes(flight.Route.DestinationAirport))
+    )
 
     if (filtered.length <= 1) return { data: filtered };
 
