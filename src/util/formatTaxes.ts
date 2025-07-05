@@ -1,6 +1,6 @@
 export function formatTaxes(taxes: number, currency: string) {
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
-    currency: currency || "CAD",
+    currency: currency || "BRL",
   }).format(taxes)
 }

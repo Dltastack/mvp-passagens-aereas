@@ -1,40 +1,56 @@
-'use server'
+"use server"
 
-import type { AvailabilityData } from "@/@types/flight";
-import { api } from "@/services/axios"
+import { AvailabilityData } from "@/@types/flight";
+import type { SearchParamsProps } from "@/@types/searchParams";
+import { api } from "@/services/axios";
 
-export async function searchFlights(params: {
-  source?: string,
-  cabin?: string,
-  start_date?: string,
-  end_date?: string,
-  origin_region?: string,
-  destination_region?: string,
-  take?: number,
-  cursor?: number,
-  skip?: number
-}) {
-  const queryParams: Record<string, string> = {};
+const BRAZILIAN_AIRPORTS = new Set([
+  "GRU", "CGH", "VCP", "GIG", "SDU", "CNF", "BSB", "SSA", "REC", "POA",
+  "FOR", "CWB", "MAO", "BEL", "FLN", "MCZ", "NAT", "CGB", "IGU"
+]);
 
-  if (params.source) queryParams.source = params.source;
-  if (params.cabin) queryParams.cabin = params.cabin;
-  if (params.start_date) queryParams.start_date = params.start_date;
-  if (params.end_date) queryParams.end_date = params.end_date;
-  if (params.origin_region) queryParams.origin_region = params.origin_region;
-  if (params.destination_region) queryParams.destination_region = params.destination_region;
-  if (params.take) queryParams.take = params.take.toString();
-  if (params.cursor) queryParams.cursor = params.cursor.toString();
-  if (params.skip) queryParams.skip = params.skip.toString();
+export async function searchFlights(params: SearchParamsProps) {
+  const {
+    cabin,
+    start_date,
+    end_date,
+    continent,
+    destination,
+    skip,
+    take,
+    source
+  } = params;
 
-  const query = new URLSearchParams(queryParams).toString();
+  const queryParams = {
+    origin_region: "South America",
+    ...(cabin && { cabin }),
+    ...(start_date && { start_date }),
+    ...(end_date && { end_date }),
+    ...(continent && { destination_region: continent }),
+    ...(typeof skip === "number" && { skip: skip.toString() }),
+    ...(typeof take === "number" && { take: take.toString() }),
+    ...(source && { source }),
+  };
 
-  const response = await api.get(`/availability?${query}`);
-  const { data } = response.data as { data: AvailabilityData[] }
+  const query = new URLSearchParams(queryParams).toString().replace(/\+/g, "%20");
 
-  const available = data
-    .filter((flight) => flight.YMileageCostRaw > 0)
-    .sort((a, b) => a.YMileageCostRaw - b.YMileageCostRaw)
+  try {
+    const response = await api.get(`/availability?${query}`);
+    const flights = (response.data?.data || []) as AvailabilityData[];
 
-  return { data: available };
+    const filtered = flights.filter((flight) =>
+      flight.YMileageCostRaw > 0 &&
+      BRAZILIAN_AIRPORTS.has(flight.Route.OriginAirport) &&
+      Array.isArray(destination) &&
+      destination.includes(flight.Route.DestinationAirport)
+    );
+
+    if (filtered.length <= 1) return { data: filtered };
+
+    const sorted = filtered.sort((a, b) => a.YMileageCostRaw - b.YMileageCostRaw);
+    return { data: sorted };
+  } catch (err) {
+    console.error("Erro ao buscar voos:", err);
+    return { data: [] };
+  }
 }
-
